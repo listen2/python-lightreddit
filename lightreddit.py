@@ -471,7 +471,7 @@ class RedditComment(RedditThing):
 		self.replies = []
 
 	def __str__(self):
-		return "<RedditComment(%s, %s, %s)>" % (self.name, self.author, self.body[:100].replace("\n", "\\n"))
+		return "<RedditComment(%s, %s, %s)>" % (self.name, self.author, "%s...(%d)" % (self.body[:100].replace("\n", "\\n"), len(self.body)))
 
 class RedditMore(RedditThing):
 	"""A 'more' object"""
@@ -517,7 +517,7 @@ class RedditMessage(RedditThing):
 			self.replies = []
 
 	def __str__(self):
-		return "<RedditMessage(%s, %s, %s, %s)>" % (self.name, self.author, self.dest, "%s...%d" % (self.body[:100].replace("\n", "\\n"), len(self.body)))
+		return "<RedditMessage(%s, %s, %s, %s)>" % (self.name, self.author, self.dest, "%s...(%d)" % (self.body[:100].replace("\n", "\\n"), len(self.body)))
 
 class RedditSubreddit(RedditThing):
 	"""A subreddit object"""
