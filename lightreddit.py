@@ -27,7 +27,7 @@ class RedditSession():
 
 		"report":		{"url":"api/report.json",			"auth":True,	"args":{},	"get_only":False},
 		"remove":		{"url":"api/remove.json",			"auth":True,	"args":{},	"get_only":False},
-		"reply":			{"url":"api/comment.json",			"auth":True,	"args":{},	"get_only":False},
+		"reply":			{"url":"api/comment.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
 		"distinguish":	{"url":"api/distinguish.json",	"auth":True,	"args":{},	"get_only":False},
 		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{},	"get_only":False},
 
@@ -224,7 +224,7 @@ class RedditSession():
 					if t.parent_id == t.link_id:
 						root.append(t)
 						to_add.remove(t)
-			self._add_more_comments(t.replies, to_add)
+				self._add_more_comments(root.replies, to_add)
 		#now handle all the other comments we fetched
 		for c in root:
 			for t in to_add:
@@ -447,11 +447,7 @@ class RedditThing:
 	def reply(self, text, distinguish=False):
 		"""Reply to the thing"""
 		response = self.session.req("reply", args={"thing_id":self.name, "text":text})
-		new_thing = None
-		for k, v in enumerate(response["jquery"]):
-			if v[3] == "insert_things":
-				new_thing = RedditComment(self.session, response["jquery"][k+1][3][0][0])		#wtf, reddit #FIXME
-				break
+		new_thing = RedditComment(self.session, response["json"]["data"]["things"][0])
 		if new_thing == None:	#the response didn't tell us what the new thing is, so it probably didn't submit successfully
 			raise RuntimeError #FIXME make the error more specific
 		if distinguish:
@@ -508,7 +504,7 @@ class RedditThread(RedditThing):
 		self.comments = coms
 
 	def __str__(self):
-		return "<RedditThread(%s, %s, %s)>" % (self.name, self.author, self.body[:100].replace("\n", "\\n"))
+		return "<RedditThread(%s, %s)>" % (self.submission, self.comments)
 
 class RedditModaction(RedditThing):
 	"""A 'more' object"""
@@ -573,8 +569,10 @@ class RedditUser:
 		self.session = session
 		self.kind = "t2"
 		self.name = name
-		if name[0] == "#":	self.fake_user = True
-		else:						self.fake_user = False
+		if name != None and name[0] == "#":
+			self.fake_user = True
+		else:
+			self.fake_user = False
 
 	def message(self, subject, text):
 		"""Send a private message to user (or modmail, if user is #subredditname)."""
