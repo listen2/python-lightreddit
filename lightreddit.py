@@ -43,6 +43,8 @@ class RedditSession():
 		"message":		{"url":"message/messages/$r.json","auth":True,"args":{},	"get_only":True},
 		"message_m":	{"url":"r/$r.json",					"auth":True,	"args":{},	"get_only":True},	#TODO temporary workaround for reddit.com bug
 
+		"compose":		{"url":"api/compose.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
+
 		"mysubs":		{"url":"subreddits/mine/subscriber.json",	"auth":True,	"args":{},	"get_only":True},
 		"mymods":		{"url":"subreddits/mine/moderator.json",	"auth":True,	"args":{},	"get_only":True},
 
@@ -165,6 +167,10 @@ class RedditSession():
 		self._get_more_comments(comments, first=True)
 
 		return RedditThread(self, submission, comments)
+
+	def get_user(self, name):
+		"""Creates a RedditUser object"""
+		return RedditUser(self, name)
 
 	def _listing_to_comment_array(self, a):#, depth=0):	#DEBUG depth
 		coms = []
@@ -566,13 +572,17 @@ class RedditUser:
 		if name[0] == "#":	self.fake_user = True
 		else:						self.fake_user = False
 
+	def message(self, subject, text):
+		"""Send a private message to user (or modmail, if user is #subredditname)."""
+		self.session.req("compose", args={"to":self.name, "subject":subject, "text":text})
+
 	def ban(self, rname, note):
 		"""Ban user from rname with reason note"""
-		self.req("ban", args={"r":rname, "name":self.name, "note":note})
+		self.session.req("ban", args={"r":rname, "name":self.name, "note":note})
 
 	def unban(self, rname):
 		"""Unban user from rname"""
-		self.req("unban", args={"r":rname, "name":self.name})
+		self.session.req("unban", args={"r":rname, "name":self.name})
 
 	def __str__(self):
 		return "<RedditUser(%s)>" % (self.name)
