@@ -117,7 +117,7 @@ class RedditSession():
 		if args is None:		args = {}
 		x = urllib.request.Request(url, data=(urllib.parse.urlencode(args).encode("ascii") if args else None))
 
-		x.add_header("User-Agent", self.user_agent)
+		x.add_header("User-Agent", self.user_agent)	#FIXME ensure the RHS is in quotes, because some characters are not valid naked on the RHS of HTTP headers
 		for h in headers:
 			x.add_header(h[0], h[1])
 		delay = self.next_req_time - time.time()
@@ -425,6 +425,12 @@ class RedditThing:
 				setattr(self, k, data["data"][k])
 			except KeyError:
 				pass #we don't care. If reddit.com didn't send us a key, then we're not supposed to have it.
+		if type(self).user_fields:
+			for k in type(self).user_fields:
+				try:
+					setattr(self, k, RedditUser(session, data["data"][k]))
+				except KeyError:
+					pass
 		#self.int_id = int(self.id,36)
 		self.raw = data
 
@@ -434,7 +440,7 @@ class RedditThing:
 		new_thing = None
 		for k, v in enumerate(response["jquery"]):
 			if v[3] == "insert_things":
-				new_thing = RedditComment(self.session, response["jquery"][k+1][3][0][0])		#wtf, reddit
+				new_thing = RedditComment(self.session, response["jquery"][k+1][3][0][0])		#wtf, reddit #FIXME
 				break
 		if new_thing == None:	#the response didn't tell us what the new thing is, so it probably didn't submit successfully
 			raise RuntimeError #FIXME make the error more specific
@@ -456,7 +462,8 @@ class RedditThing:
 class RedditSubmission(RedditThing):
 	"""A submission (link or self-post), without comments"""
 
-	fields = ["name", "author", "domain", "banned_by", "subreddit", "selftext", "title", "approved_by", "link_flair_css_class", "is_self", "permalink", "url", "created_utc", "num_reports"]
+	fields = ["name", "domain", "subreddit", "selftext", "title", "link_flair_css_class", "is_self", "permalink", "url", "created_utc", "num_reports"]
+	user_fields = ["author", "banned_by", "approved_by"]
 
 	def __str__(self):
 		return "<RedditSubmission(%s, %s, %s, %s)>" % (self.name, self.author, self.domain, self.title)
@@ -464,7 +471,8 @@ class RedditSubmission(RedditThing):
 class RedditComment(RedditThing):
 	"""A single comment"""
 
-	fields = ["name", "author", "body", "edited", "banned_by", "approved_by", "created_utc", "num_reports", "subreddit", "link_id", "id", "parent_id"]
+	fields = ["name", "body", "edited", "created_utc", "num_reports", "subreddit", "link_id", "id", "parent_id"]
+	user_fields = ["author", "banned_by", "approved_by"]
 
 	def __init__(self, session, data):
 		super(RedditComment, self).__init__(session, data)
@@ -495,7 +503,8 @@ class RedditThread(RedditThing):
 class RedditModaction(RedditThing):
 	"""A 'more' object"""
 
-	fields = ["description", "id", "created_utc", "subreddit", "details", "action", "mod", "target_fullname"]
+	fields = ["description", "id", "created_utc", "subreddit", "details", "action", "target_fullname"]
+	user_fields = ["mod"]
 
 	def __init__(self, session, data):
 		super(RedditModaction, self).__init__(session, data)
@@ -507,7 +516,8 @@ class RedditModaction(RedditThing):
 class RedditMessage(RedditThing):
 	"""A message object (inbox or sent)"""
 
-	fields = ["body", "was_comment", "first_message", "name", "first_message_name", "dest", "author", "created_utc", "body_html", "subreddit", "parent_id", "context", "subject"]
+	fields = ["body", "was_comment", "first_message", "name", "first_message_name", "created_utc", "body_html", "subreddit", "parent_id", "context", "subject"]
+	user_fields = ["dest", "author"]
 
 	def __init__(self, session, data):
 		super(RedditMessage, self).__init__(session, data)
@@ -530,13 +540,26 @@ class RedditSubreddit(RedditThing):
 class RedditBan(RedditThing):
 	"""A ban object"""
 
-	fields = ["name", "user", "note", "subreddit"]	#note we do something weird in the constructor because these objects have field names inconsistent with the rest of reddit
+	fields = ["name", "note", "subreddit"]	#note we do something weird in the constructor because these objects have field names inconsistent with the rest of reddit
+	user_fields = ["user"]
 
 	def __init__(self, session, data):
 		super(RedditBan, self).__init__(session, {"kind":"ban", "data":{"name":data["id"], "user":data["name"], "note":data["note"], "subreddit":data["subreddit"]}})
 
 	def __str__(self):
 		return "<RedditBan(%s, %s, %s)>" % (self.subreddit, self.user, self.note)
+
+class RedditUser:
+	"""A redditor object. Note that this can sometimes be "#subreddit", in which case fake_user will be true."""
+	def __init__(self, session, name):
+		self.session = session
+		self.kind = "t2"
+		self.name = name
+		if name[0] == "#":	self.fake_user = True
+		else:						self.fake_user = False
+
+	def __str__(self):
+		return "<RedditUser(%s)>" % (self.name)
 
 class NoSuchUserException(Exception):
 	"""Also shadowbanned users"""
