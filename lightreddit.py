@@ -252,6 +252,10 @@ class RedditSession():
 		if start:	return self._get_listing("sent", "", start)
 		else:			return self._get_listing_backwards("sent")
 
+	def message(self, user, subject, text):
+		"""Send a private message to user (or modmail, if user is #subredditname)."""
+		self.session.req("compose", args={"to":user, "subject":subject, "text":text})
+
 	def get_user_comments(self, uname="", start=None, limit=0):
 		"""Get comments by a user
 		If start is set, work forward from there to the front. Otherwise, get the last RedditSession._listing_limit."""
