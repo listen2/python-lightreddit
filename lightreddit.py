@@ -534,6 +534,14 @@ class RedditSubreddit(RedditThing):
 
 	fields = ["header_title", "header_img", "title", "name", "created_utc", "accounts_active", "over18", "subscribers", "public_description", "display_name", "description"]
 
+	def ban(self, user, note):
+		"""Ban user from subreddit with reason note"""
+		self.req("ban", args={"r":self.name, "name":user, "note":note})
+
+	def unban(self, user):
+		"""Unban user from subreddit"""
+		self.req("unban", args={"r":self.name, "name":user})
+
 	def __str__(self):
 		return "<RedditSubreddit(%s, %s)>" % (self.name, self.display_name)
 
@@ -557,6 +565,14 @@ class RedditUser:
 		self.name = name
 		if name[0] == "#":	self.fake_user = True
 		else:						self.fake_user = False
+
+	def ban(self, rname, note):
+		"""Ban user from rname with reason note"""
+		self.req("ban", args={"r":rname, "name":self.name, "note":note})
+
+	def unban(self, rname):
+		"""Unban user from rname"""
+		self.req("unban", args={"r":rname, "name":self.name})
 
 	def __str__(self):
 		return "<RedditUser(%s)>" % (self.name)
