@@ -435,12 +435,14 @@ class RedditThing:
 				setattr(self, k, data["data"][k])
 			except KeyError:
 				pass #we don't care. If reddit.com didn't send us a key, then we're not supposed to have it.
-		if type(self).user_fields:
+		try:
 			for k in type(self).user_fields:
 				try:
 					setattr(self, k, RedditUser(session, data["data"][k]))
 				except KeyError:
 					pass
+		except AttributeError:
+			pass
 		#self.int_id = int(self.id,36)
 		self.raw = data
 
