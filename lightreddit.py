@@ -52,7 +52,8 @@ class RedditSession():
 		"ban":			{"url":"api/friend",					"auth":True,	"args":{"type":"banned"},	"get_only":False},
 		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False},
 		"about":			{"url":"r/$r/about.json",			"auth":False,	"args":{},	"get_only":False},
-		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":True}
+		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":True},
+		"site_admin":	{"url":"api/site_admin",			"auth":True,	"args":{"api_type":"json"},	"get_only":False}
 	}
 
 	_listing_batch = 100			#fetch this many listings at a time
@@ -128,7 +129,7 @@ class RedditSession():
 		if delay > 0:
 			#print("have to sleep for %f" % (delay))
 			time.sleep(delay)
-		#print("%f req \"%s\" %s %s" % (time.time(), x.get_full_url(), x.header_items(), x.get_data()))
+		#print("%f req %s \"%s\" %s %s" % (time.time(), x.get_method(), x.get_full_url(), x.header_items(), x.get_data()))
 		y = urllib.request.urlopen(x)
 		self.next_req_time = time.time() + 2
 		if y.status != 200:	#FIXME reddit.com still returns 200 when there was a higher-level error
@@ -335,7 +336,39 @@ class RedditSession():
 
 	def get_subreddit_settings(self, rname):
 		"""Get subreddit settings (suitable for passing to site_admin)"""
-		return self.req("edit", rname)
+		return self.req("edit", rname)["data"]
+
+	def set_subreddit_settings(self, rname, s):
+		"""Set subreddit settings"""
+		keys = ["allow_top", "comment_score_hide_mins", "css_on_cname", "description", "exclude_banned_modqueue", "header-title", "lang", "link_type", "name", "over_18", "public_description", "public_traffic", "show_cname_sidebar", "show_media", "spam_comments", "spam_links", "spam_selfposts", "sr", "submit_link_label", "submit_text", "submit_text_label", "title", "type", "wiki_edit_age", "wiki_edit_karma", "wikimode"]
+
+		s["allow_top"] = s["default_set"]
+		del(s["default_set"])
+		s["css_on_cname"] = s["domain_css"]
+		del(s["domain_css"])
+		s["header-title"] = s["header_hover_text"]
+		del(s["header_hover_text"])
+		s["lang"] = s["language"]
+		del(s["language"])
+		s["link_type"] = s["content_options"]
+		del(s["content_options"])
+		s["name"] = rname
+		s["show_cname_sidebar"] = s["domain_sidebar"]
+		del(s["domain_sidebar"])
+		s["sr"] = s["subreddit_id"]
+		del(s["subreddit_id"])
+		s["type"] = s["subreddit_type"]
+		del(s["subreddit_type"])
+
+		for k in keys:
+			if k not in s.keys():
+				raise BadSettingsException("'%s' not provided" % (k))
+		for k in s.keys():
+			if s[k] == None:
+				s[k] = ""
+		#if len(keys) != len(s.keys()):
+		#	raise BadSettingsException("Wrong number of arguments provided")
+		return self.req("site_admin", args=s)
 
 	def get_banned(self, rname, start=None):
 		"""Get banned users for a subreddit"""
@@ -603,4 +636,8 @@ class RedditUser:
 
 class NoSuchUserException(Exception):
 	"""Also shadowbanned users"""
+	pass
+
+class BadSettingsException(Exception):
+	"""The library raises this before attempting to call site_admin with wonky-looking parameters"""
 	pass
