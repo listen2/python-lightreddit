@@ -50,7 +50,9 @@ class RedditSession():
 
 		"banned":		{"url":"r/$r/about/banned.json",	"auth":True,	"args":{},	"get_only":True},
 		"ban":			{"url":"api/friend",					"auth":True,	"args":{"type":"banned"},	"get_only":False},
-		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False}
+		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False},
+		"about":			{"url":"r/$r/about.json",			"auth":False,	"args":{},	"get_only":False},
+		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":False}
 	}
 
 	_listing_batch = 100			#fetch this many listings at a time
@@ -326,6 +328,14 @@ class RedditSession():
 	def get_subreddits_mod(self):
 		"""Get list of subreddits moderated"""
 		return self._get_listing_backwards("mymods")
+
+	def get_subreddit_about(self, rname):
+		"""Get subreddit description (sidebar)"""
+		return self.req("about", rname)
+
+	def get_subreddit_edit(self, rname):
+		"""Get subreddit settings (suitable for passing to site_admin)"""
+		return self.req("edit", rname)
 
 	def get_banned(self, rname, start=None):
 		"""Get banned users for a subreddit"""
