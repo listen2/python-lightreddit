@@ -52,7 +52,7 @@ class RedditSession():
 		"ban":			{"url":"api/friend",					"auth":True,	"args":{"type":"banned"},	"get_only":False},
 		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False},
 		"about":			{"url":"r/$r/about.json",			"auth":False,	"args":{},	"get_only":False},
-		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":False}
+		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":True}
 	}
 
 	_listing_batch = 100			#fetch this many listings at a time
