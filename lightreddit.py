@@ -333,7 +333,7 @@ class RedditSession():
 		"""Get subreddit description (sidebar)"""
 		return self.req("about", rname)
 
-	def get_subreddit_edit(self, rname):
+	def get_subreddit_settings(self, rname):
 		"""Get subreddit settings (suitable for passing to site_admin)"""
 		return self.req("edit", rname)
 
