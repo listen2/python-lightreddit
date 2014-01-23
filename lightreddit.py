@@ -467,6 +467,8 @@ class RedditSession():
 			return RedditMore(self, x)
 		if x["kind"] == "modaction":
 			return RedditModaction(self, x)
+		if x["kind"] == "wikipage":
+			return RedditWikipage(self, x)
 		else:
 			print("DEBUG: unknown thing type: %s" % (x))
 
@@ -639,6 +641,18 @@ class RedditUser:
 
 	def __str__(self):
 		return "<RedditUser(%s)>" % (self.name)
+
+class RedditWikipage(RedditThing):
+	"""A revision of a wiki page"""
+
+	fields = ["may_revise", "revision_date", "content_html", "content_md"]
+
+	def __init__(self, session, data):
+		super(RedditModaction, self).__init__(session, data)
+		self.user = RedditUser(session, data["revision_by"]["data"]["name"])
+
+	def __str__(self):
+		return "<RedditWikipage(%s)>" % (self.content_md[:30])
 
 class NoSuchUserException(Exception):
 	"""Also shadowbanned users"""
