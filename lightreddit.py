@@ -450,7 +450,7 @@ class RedditSession():
 		self.req("unban", args={"r":rname, "name":user})
 
 	def wiki_write(self, rname, page, content, reason):
-		"""Write content to rname's wiki page with optional reason. All exsting content is overwritten."""
+		"""Write content (in reddit markdown) to rname's wiki page with optional reason. All exsting content is overwritten."""
 		self.req("wiki_write", rname, args={"page":page, "content":content, "reason":reason})
 
 	def _thing_factory(self, x):
