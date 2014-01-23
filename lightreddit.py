@@ -53,7 +53,9 @@ class RedditSession():
 		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False},
 		"about":			{"url":"r/$r/about.json",			"auth":False,	"args":{},	"get_only":False},
 		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":True},
-		"site_admin":	{"url":"api/site_admin",			"auth":True,	"args":{"api_type":"json"},	"get_only":False}
+		"site_admin":	{"url":"api/site_admin",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
+
+		"wiki_write":	{"url":"r/$r/api/wiki/edit",		"auth":True,	"args":{},	"get_only":False}
 	}
 
 	_listing_batch = 100			#fetch this many listings at a time
@@ -446,6 +448,10 @@ class RedditSession():
 	def unban(self, rname, user):
 		"""Unban user from rname"""
 		self.req("unban", args={"r":rname, "name":user})
+
+	def wiki_write(self, rname, page, content, reason):
+		"""Write content to rname's wiki page with optional reason. All exsting content is overwritten."""
+		self.req("wiki_write", rname, args={"page":page, "content":content, "reason":reason})
 
 	def _thing_factory(self, x):
 		"""Create the proper object for a thing"""
