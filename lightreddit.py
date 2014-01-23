@@ -453,6 +453,11 @@ class RedditSession():
 		"""Write content (in reddit markdown) to rname's wiki page with optional reason. All exsting content is overwritten."""
 		self.req("wiki_write", rname, args={"page":page, "content":content, "reason":reason})
 
+	def wiki_get(self, rname, page):
+		"""RWrite content (in reddit markdown) to rname's wiki page with optional reason. All exsting content is overwritten."""
+		a = self.req_raw("http://www.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
+		return RedditWikipage(self, json.loads(a))
+
 	def _thing_factory(self, x):
 		"""Create the proper object for a thing"""
 		if x["kind"] == "t1":
@@ -648,8 +653,8 @@ class RedditWikipage(RedditThing):
 	fields = ["may_revise", "revision_date", "content_html", "content_md"]
 
 	def __init__(self, session, data):
-		super(RedditModaction, self).__init__(session, data)
-		self.user = RedditUser(session, data["revision_by"]["data"]["name"])
+		super(RedditWikipage, self).__init__(session, data)
+		self.user = RedditUser(session, data["data"]["revision_by"]["data"]["name"])
 
 	def __str__(self):
 		return "<RedditWikipage(%s)>" % (self.content_md[:30])
