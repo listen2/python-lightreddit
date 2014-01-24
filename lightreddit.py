@@ -454,7 +454,7 @@ class RedditSession():
 		self.req("wiki_write", rname, args={"page":page, "content":content, "reason":reason})
 
 	def wiki_get(self, rname, page):
-		"""RWrite content (in reddit markdown) to rname's wiki page with optional reason. All exsting content is overwritten."""
+		"""Return wiki page."""
 		a = self.req_raw("http://www.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
 		return RedditWikipage(self, json.loads(a))
 
