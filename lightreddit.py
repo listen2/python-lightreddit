@@ -535,8 +535,8 @@ class RedditSubmission(RedditThing):
 class RedditComment(RedditThing):
 	"""A single comment"""
 
-	fields = ["name", "body", "edited", "created_utc", "num_reports", "subreddit", "link_id", "id", "parent_id"]
-	user_fields = ["author", "banned_by", "approved_by"]
+	fields = ["name", "body", "edited", "created_utc", "num_reports", "subreddit", "link_id", "link_title", "id", "parent_id"]
+	user_fields = ["author", "link_author", "banned_by", "approved_by"]
 
 	def __init__(self, session, data):
 		super(RedditComment, self).__init__(session, data)
