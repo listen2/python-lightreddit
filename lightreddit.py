@@ -229,7 +229,7 @@ class RedditSession():
 					if t.parent_id == t.link_id:
 						root.append(t)
 						to_add.remove(t)
-				self._add_more_comments(root.replies, to_add)
+				self._add_more_comments(root, to_add)
 		#now handle all the other comments we fetched
 		for c in root:
 			for t in to_add:
