@@ -32,7 +32,7 @@ class RedditSession():
 		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{},	"get_only":False},
 
 		"modlog":		{"url":"r/$r/about/log.json",		"auth":True,	"args":{},	"get_only":True},
-		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":True,	"args":{},	"get_only":False},
+		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":True,	"args":{},	"get_only":True},
 
 		"overview":		{"url":"user/$r/overview.json",	"auth":False,	"args":{},	"get_only":False},
 		"u_comments":	{"url":"user/$r/comments.json",	"auth":False,	"args":{},	"get_only":False},
@@ -131,7 +131,7 @@ class RedditSession():
 		if delay > 0:
 			#print("have to sleep for %f" % (delay))
 			time.sleep(delay)
-		#print("%f req %s \"%s\" %s %s" % (time.time(), x.get_method(), x.get_full_url(), x.header_items(), x.get_data()))
+		print("%f req %s \"%s\" %s %s" % (time.time(), x.get_method(), x.get_full_url(), x.header_items(), x.get_data()))
 		y = urllib.request.urlopen(x)
 		self.next_req_time = time.time() + 2
 		if y.status != 200:	#FIXME reddit.com still returns 200 when there was a higher-level error
