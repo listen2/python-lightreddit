@@ -32,7 +32,7 @@ class RedditSession():
 		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{},	"get_only":False},
 
 		"modlog":		{"url":"r/$r/about/log.json",		"auth":True,	"args":{},	"get_only":True},
-		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":False,	"args":{},	"get_only":False},
+		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":True,	"args":{},	"get_only":False},
 
 		"overview":		{"url":"user/$r/overview.json",	"auth":False,	"args":{},	"get_only":False},
 		"u_comments":	{"url":"user/$r/comments.json",	"auth":False,	"args":{},	"get_only":False},
