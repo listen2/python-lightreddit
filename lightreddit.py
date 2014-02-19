@@ -621,15 +621,15 @@ class RedditBan(RedditThing):
 		return "<RedditBan(%s, %s, %s)>" % (self.subreddit, self.user, self.note)
 
 class RedditUser:
-	"""A redditor object. Note that this can sometimes be "#subreddit", in which case fake_user will be true."""
+	"""A redditor object. Note that this can sometimes be "#subreddit", in which case null_user will be true."""
 	def __init__(self, session, name):
 		self.session = session
 		self.kind = "t2"
 		self.name = name
 		if name != None and name[0] == "#":
-			self.fake_user = True
+			self.null_user = True
 		else:
-			self.fake_user = False
+			self.null_user = False
 
 	def message(self, subject, text):
 		"""Send a private message to user (or modmail, if user is #subredditname)."""
