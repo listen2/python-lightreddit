@@ -436,9 +436,15 @@ class RedditSession():
 			return sorted(a, key=lambda x: getattr(x, sort))
 		return list(reversed(a))
 
-	def submit(self, rname, title, text):
+	def submit(self, rname, title, text, distinguish=False):
 		"""Submit a new post to rname"""
-		self.req("submit", args={"sr":rname, "kind":"self", "title":title, "text":text})
+		response = self.req("submit", args={"sr":rname, "kind":"self", "title":title, "text":text})
+		if len(response["json"]["errors"]) != 0:
+			raise RuntimeError(response["json"]["errors"])
+		response["json"]["kind"] = "t3"	#The response doesn't have this, but we know it's a t3
+		new_thing = RedditSubmission(self, response["json"])
+		if distinguish:
+			new_thing.distinguish()
 
 	def ban(self, rname, user, note):
 		"""Ban user from rname with reason note"""
