@@ -29,7 +29,7 @@ class RedditSession():
 		"remove":		{"url":"api/remove.json",			"auth":True,	"args":{},	"get_only":False},
 		"reply":			{"url":"api/comment.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
 		"distinguish":	{"url":"api/distinguish.json",	"auth":True,	"args":{},	"get_only":False},
-		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{},	"get_only":False},
+		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
 
 		"modlog":		{"url":"r/$r/about/log.json",		"auth":True,	"args":{},	"get_only":True},
 		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":True,	"args":{},	"get_only":True},
