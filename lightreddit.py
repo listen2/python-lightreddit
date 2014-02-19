@@ -626,7 +626,7 @@ class RedditUser:
 		self.session = session
 		self.kind = "t2"
 		self.name = name
-		if name != None and name[0] == "#":
+		if name == None or (name != None and name[0] == "#"):
 			self.null_user = True
 		else:
 			self.null_user = False
