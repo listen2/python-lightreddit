@@ -163,9 +163,9 @@ class RedditSession():
 		except urllib.error.HTTPError as e:
 			if e.code == 404:	raise NoSuchUserException()
 
-	def get_thread(self, id):
+	def get_thread(self, id, limit=_listing_limit):	#FIXME limit is working in this function as a batch limit, not a limit on listing size
 		"""Get a thread (submission and comments) by id (without the 't3_')"""
-		items = self.req("thread", id, get_args={"limit":RedditSession._listing_batch, "api_type":"json"})
+		items = self.req("thread", id, get_args={"limit":limit, "api_type":"json"})
 
 		submission = self._thing_factory(items[0]["data"]["children"][0])
 		comments = self._listing_to_comment_array(items[1]["data"]["children"])
@@ -436,9 +436,15 @@ class RedditSession():
 			return sorted(a, key=lambda x: getattr(x, sort))
 		return list(reversed(a))
 
-	def submit(self, rname, title, text):
+	def submit(self, rname, title, text, distinguish=False):
 		"""Submit a new post to rname"""
-		return self.req("submit", args={"sr":rname, "kind":"self", "title":title, "text":text})
+		response = self.req("submit", args={"sr":rname, "kind":"self", "title":title, "text":text})
+		if len(response["json"]["errors"]) != 0:
+			raise RuntimeError(response["json"]["errors"])
+		response["json"]["kind"] = "t3"	#The response doesn't have this, but we know it's a t3
+		new_thing = RedditSubmission(self, response["json"])
+		if distinguish:
+			new_thing.distinguish()
 
 	def ban(self, rname, user, note):
 		"""Ban user from rname with reason note"""
