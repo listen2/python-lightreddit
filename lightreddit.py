@@ -445,6 +445,7 @@ class RedditSession():
 		new_thing = RedditSubmission(self, response["json"])
 		if distinguish:
 			new_thing.distinguish()
+		return new_thing
 
 	def ban(self, rname, user, note):
 		"""Ban user from rname with reason note"""
