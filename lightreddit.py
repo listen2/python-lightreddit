@@ -89,11 +89,11 @@ class RedditSession():
 			if not self.user or not self.passwd:
 				raise RuntimeError("no username or password set")
 			y = self.req_raw("https://pay.reddit.com/api/login", {"passwd":self.passwd, "rem":True, "user":self.user})
-			#y = self.req_raw("http://www.reddit.com/api/login", {"passwd":self.passwd, "rem":True, "user":self.user})
+			#y = self.req_raw("http://api.reddit.com/api/login", {"passwd":self.passwd, "rem":True, "user":self.user})
 		#now we have a session cookie, either new or from cj
 		headers = []
 
-		y = self.req_raw("http://www.reddit.com/api/me.json", headers=headers)
+		y = self.req_raw("http://api.reddit.com/api/me.json", headers=headers)
 		z = json.loads(y.read().decode("utf8"))
 		self.uh = z["data"]["modhash"]
 		#["has_mail", "has_mod_mail"]
@@ -102,7 +102,7 @@ class RedditSession():
 	def req(self, url_name, rname="", args=None, get_args=None):
 		"""Build a request, send it through the dispatcher, and return the response body"""
 		u = RedditSession.urls[url_name]
-		url = "http://www.reddit.com/%s" % (u["url"])
+		url = "http://api.reddit.com/%s" % (u["url"])
 		url = url.replace("$r", rname)
 		if get_args is not None:
 			url += "?" + "&".join(["%s=%s" % (x[0], x[1]) for x in get_args.items()])
@@ -461,7 +461,7 @@ class RedditSession():
 
 	def wiki_get(self, rname, page):
 		"""Return wiki page."""
-		a = self.req_raw("http://www.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
+		a = self.req_raw("http://api.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
 		return RedditWikipage(self, json.loads(a))
 
 	def _thing_factory(self, x):
