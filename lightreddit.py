@@ -138,11 +138,11 @@ class RedditSession():
 			print("%s: %s" % (y.status, y.reason))
 		return y
 
-	def get_comments(self, rname, start=None, short=True):
+	def get_comments(self, rname, start=None):
 		"""Get recent comments from rname and return a list of Comment objects
 		If start is set, work forward from just after there to the front. Otherwise, get the last RedditSession._listing_limit."""
 		if start:
-			return self._get_listing("comments", rname, start, short=short)
+			return self._get_listing("comments", rname, start)
 		else:
 			return self._get_listing_backwards("comments", rname)
 
@@ -382,15 +382,15 @@ class RedditSession():
 			a.append(RedditBan(self, b))
 		return a
 
-	def _get_listing(self, url, rname, start, sort=None, short=True):
+	def _get_listing(self, url, rname, start, sort=None):
 		"""Get recent items from a listing
 		If start is set, work forward from just after there to the front. Otherwise, get the last RedditSession._listing_limit."""
 		a = []
 		n = start if start is not None else ""		#requesting "before=t3_" has the effect of not even including the request parameter
 		while True:
 			items = self.req(url, rname, get_args={"limit":RedditSession._listing_batch,"before":n})
-			if not short and len(items["data"]["children"]) == 0:	#maybe there's nothing to get, or maybe our 'before=' thing disappeared from reddit and we're missing data
-				#print("DEBUG: switching to backwards mode with end==%s" % (start))
+			if len(items["data"]["children"]) == 0:	#maybe there's nothing to get, or maybe our 'before=' thing disappeared from reddit and we're missing data
+				print("DEBUG: switching to backwards mode with end==%s" % (start))
 				return self._get_listing_backwards(url, rname, start) #to be safe, we'll start grabbing things from the front working backwards until we overlap the tid of what we thought was the latest
 			for item in reversed(items["data"]["children"]):
 				a.append(self._thing_factory(item))
