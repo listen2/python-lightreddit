@@ -390,7 +390,7 @@ class RedditSession():
 		while True:
 			items = self.req(url, rname, get_args={"limit":RedditSession._listing_batch,"before":n})
 			if len(items["data"]["children"]) == 0:	#maybe there's nothing to get, or maybe our 'before=' thing disappeared from reddit and we're missing data
-				print("DEBUG: switching to backwards mode with end==%s" % (start))
+				#print("DEBUG: switching to backwards mode with end==%s" % (start))
 				return self._get_listing_backwards(url, rname, start) #to be safe, we'll start grabbing things from the front working backwards until we overlap the tid of what we thought was the latest
 			for item in reversed(items["data"]["children"]):
 				a.append(self._thing_factory(item))
@@ -417,15 +417,16 @@ class RedditSession():
 		batch = min(RedditSession._listing_batch, limit) if limit > 0 else RedditSession._listing_batch
 		while True:
 			items = self.req(url, rname, get_args={"limit":batch,"after":n})	#get RedditSession._listing_batch every time and manually find the stopping point later
-			#passed_end = False
+			passed_end = False
 			for item in items["data"]["children"]:
 				try:
 					if int(item["data"]["id"], 36) > end_int:	#haven't reach the end yet
 						a.append(self._thing_factory(item))
+					else:
+						passed_end = True				#note that we can't break early because reddit might not return the results in tid order. maybe. let's be safe and process the whole batch.
 				except ValueError:
 					a.append(self._thing_factory(item))	#something that can't be compared, like Modlog. In that case, always fetch to the max limit
-					#passed_end = True   #FIXME?		#note that we can't break early because reddit might not return the results in tid order. maybe. let's be safe and process the whole batch.
-			if len(items["data"]["children"]) == 0:# or passed_end:
+			if len(items["data"]["children"]) == 0 or passed_end:
 				break
 			if len(a) > min(RedditSession._listing_limit, 2000) or (limit != 0 and len(a) >= limit):	#safety stop at 2000
 				break
@@ -532,7 +533,7 @@ class RedditThing:
 class RedditSubmission(RedditThing):
 	"""A submission (link or self-post), without comments"""
 
-	fields = ["name", "domain", "subreddit", "selftext", "title", "link_flair_css_class", "is_self", "permalink", "url", "created_utc", "num_reports"]
+	fields = ["name", "domain", "subreddit", "selftext", "title", "link_flair_css_class", "is_self", "permalink", "url", "created_utc", "num_reports", "id"]
 	user_fields = ["author", "banned_by", "approved_by"]
 
 	def __str__(self):
