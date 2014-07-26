@@ -437,9 +437,14 @@ class RedditSession():
 			return sorted(a, key=lambda x: getattr(x, sort))
 		return list(reversed(a))
 
-	def submit(self, rname, title, text, distinguish=False):
+	def submit(self, rname, title, text, distinguish=False, sendreplies=False):
 		"""Submit a new post to rname"""
-		response = self.req("submit", args={"sr":rname, "kind":"self", "title":title, "text":text})
+		args={"sr":rname, "kind":"self", "title":title, "text":text}
+		if sendreplies:
+			args["sendreplies"] = True
+		else:
+			args["sendreplies"] = False
+		response = self.req("submit", args=args)
 		if len(response["json"]["errors"]) != 0:
 			raise RuntimeError(response["json"]["errors"])
 		response["json"]["kind"] = "t3"	#The response doesn't have this, but we know it's a t3
