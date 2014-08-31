@@ -173,6 +173,12 @@ class RedditSession():
 
 		return RedditThread(self, submission, comments)
 
+	def get_submission(self, id, limit=_listing_limit):
+		"""Get a submission by id (without the 't3_')"""
+		items = self.req("thread", id, get_args={"limit":0, "api_type":"json"})
+
+		return self._thing_factory(items[0]["data"]["children"][0])
+
 	def get_user(self, name):
 		"""Creates a RedditUser object"""
 		return RedditUser(self, name)
