@@ -15,46 +15,47 @@ class RedditSession():
 		get_submissions()
 		get_thread()
 		submit()
+		and more
 
 		There is no login() method. Logging in is done lazily, as needed.
 	"""
 	urls = {
-		"comments":		{"url":"r/$r/comments.json",		"auth":False,	"args":{},	"get_only":False},
-		"submissions":	{"url":"r/$r/new.json",				"auth":False,	"args":{},	"get_only":False},
-		"thread":		{"url":"comments/$r.json",			"auth":False,	"args":{},	"get_only":False},
-		"morechildren":{"url":"api/morechildren.json",	"auth":False,	"args":{"api_type":"json"},	"get_only":False},
+		"comments":		{"url":"r/$r/comments.json",			"auth":False,	"args":{},							"method":"get",	"host":"www"},
+		"submissions":	{"url":"r/$r/new.json",					"auth":False,	"args":{},							"method":"get",	"host":"www"},
+		"thread":		{"url":"comments/$r.json",				"auth":False,	"args":{},							"method":"get",	"host":"www"},
+		"morechildren":{"url":"api/morechildren.json",		"auth":False,	"args":{"api_type":"json"},	"method":"get",	"host":"www"},
 
-		"report":		{"url":"api/report.json",			"auth":True,	"args":{},	"get_only":False},
-		"remove":		{"url":"api/remove.json",			"auth":True,	"args":{},	"get_only":False},
-		"reply":			{"url":"api/comment.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
-		"distinguish":	{"url":"api/distinguish.json",	"auth":True,	"args":{},	"get_only":False},
-		"submit":		{"url":"api/submit.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
+		"report":		{"url":"api/report.json",				"auth":True,	"args":{},							"method":"post"},
+		"remove":		{"url":"api/remove.json",				"auth":True,	"args":{},							"method":"post"},
+		"reply":			{"url":"api/comment.json",				"auth":True,	"args":{"api_type":"json"},	"method":"post"},
+		"distinguish":	{"url":"api/distinguish.json",		"auth":True,	"args":{},							"method":"post"},
+		"submit":		{"url":"api/submit.json",				"auth":True,	"args":{"api_type":"json"},	"method":"post"},
 
-		"modlog":		{"url":"r/$r/about/log.json",		"auth":True,	"args":{},	"get_only":True},
-		"flairlist":	{"url":"r/$r/api/flairlist.json","auth":True,	"args":{},	"get_only":True},
+		"modlog":		{"url":"r/$r/about/log.json",			"auth":True,	"args":{},							"method":"get"},
+		"flairlist":	{"url":"r/$r/api/flairlist.json",	"auth":True,	"args":{},							"method":"get"},
 
-		"overview":		{"url":"user/$r/overview.json",	"auth":False,	"args":{},	"get_only":False},
-		"u_comments":	{"url":"user/$r/comments.json",	"auth":False,	"args":{},	"get_only":False},
-		"u_submitted":	{"url":"user/$r/submitted.json",	"auth":False,	"args":{},	"get_only":False},
-		"inbox":			{"url":"message/inbox.json",		"auth":True,	"args":{},	"get_only":True},
-		"sent":			{"url":"message/sent.json",		"auth":True,	"args":{},	"get_only":True},
-		"modmail":		{"url":"r/$r/message/moderator/inbox.json","auth":True,"args":{},	"get_only":True},
-		"message":		{"url":"message/messages/$r.json","auth":True,"args":{},	"get_only":True},
-		"message_m":	{"url":"r/$r.json",					"auth":True,	"args":{},	"get_only":True},	#TODO temporary workaround for reddit.com bug
+		"overview":		{"url":"user/$r/overview.json",		"auth":False,	"args":{},							"method":"get"},
+		"u_comments":	{"url":"user/$r/comments.json",		"auth":False,	"args":{},							"method":"get"},
+		"u_submitted":	{"url":"user/$r/submitted.json",		"auth":False,	"args":{},							"method":"get"},
+		"inbox":			{"url":"message/inbox.json",			"auth":True,	"args":{},							"method":"get"},
+		"sent":			{"url":"message/sent.json",			"auth":True,	"args":{},							"method":"get"},
+		"modmail":		{"url":"r/$r/message/moderator/inbox.json","auth":True,"args":{},						"method":"get"},
+		"message":		{"url":"message/messages/$r.json",	"auth":True,	"args":{},							"method":"get"},
+		"message_m":	{"url":"r/$r.json",						"auth":True,	"args":{},							"method":"get"},	#TODO temporary workaround for reddit.com bug
 
-		"compose":		{"url":"api/compose.json",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
+		"compose":		{"url":"api/compose.json",				"auth":True,	"args":{"api_type":"json"},	"method":"post"},
 
-		"mysubs":		{"url":"subreddits/mine/subscriber.json",	"auth":True,	"args":{},	"get_only":True},
-		"mymods":		{"url":"subreddits/mine/moderator.json",	"auth":True,	"args":{},	"get_only":True},
+		"mysubs":		{"url":"subreddits/mine/subscriber.json",	"auth":True,	"args":{},					"method":"get"},
+		"mymods":		{"url":"subreddits/mine/moderator.json",	"auth":True,	"args":{},					"method":"get"},
 
-		"banned":		{"url":"r/$r/about/banned.json",	"auth":True,	"args":{},	"get_only":True},
-		"ban":			{"url":"api/friend",					"auth":True,	"args":{"type":"banned"},	"get_only":False},
-		"unban":			{"url":"api/unfriend",				"auth":True,	"args":{"type":"banned"},	"get_only":False},
-		"about":			{"url":"r/$r/about.json",			"auth":False,	"args":{},	"get_only":False},
-		"edit":			{"url":"r/$r/about/edit.json",	"auth":True,	"args":{},	"get_only":True},
-		"site_admin":	{"url":"api/site_admin",			"auth":True,	"args":{"api_type":"json"},	"get_only":False},
+		"banned":		{"url":"r/$r/about/banned.json",		"auth":True,	"args":{},							"method":"get"},
+		"ban":			{"url":"api/friend",						"auth":True,	"args":{"type":"banned"},		"method":"post"},
+		"unban":			{"url":"api/unfriend",					"auth":True,	"args":{"type":"banned"},		"method":"post"},
+		"about":			{"url":"r/$r/about.json",				"auth":False,	"args":{},							"method":"get"},
+		"edit":			{"url":"r/$r/about/edit.json",		"auth":True,	"args":{},							"method":"get"},
+		"site_admin":	{"url":"api/site_admin",				"auth":True,	"args":{"api_type":"json"},	"method":"post"},
 
-		"wiki_write":	{"url":"r/$r/api/wiki/edit",		"auth":True,	"args":{},	"get_only":False}
+		"wiki_write":	{"url":"r/$r/api/wiki/edit",			"auth":True,	"args":{},							"method":"post"}
 	}
 
 	_listing_batch = 100			#fetch this many listings at a time
@@ -101,9 +102,9 @@ class RedditSession():
 	def req(self, url_name, rname="", args={}, get_args=None):
 		"""Build a request, send it through the dispatcher, and return the response body"""
 		u = RedditSession.urls[url_name]
-		url = "https://oauth.reddit.com/%s" % (u["url"])
+		url = "https://%s.reddit.com/%s" % (u['host'] if u.get('host') else 'oauth', u['url'])
 		url = url.replace("$r", rname)
-		if u['get_only']:
+		if u['method'] == 'get':
 			url += "?" + "&".join(["%s=%s" % (x[0], x[1]) for x in get_args.items()])
 		args = dict(u["args"], **args)	#later ones override in case of collision with defaults
 		headers = {}
@@ -111,9 +112,9 @@ class RedditSession():
 			if self.tokens == {}:
 				self._login()
 			headers["Authorization"] = "bearer %s" % self.tokens['bearer']
-		return json.loads(self.req_raw(url, args, headers, get=u['get_only']).text)
+		return json.loads(self.req_raw(url, args, headers, method=u['method']).text)
 
-	def req_raw(self, url, args={}, hs={}, auth=None, get=False):
+	def req_raw(self, url, args={}, hs={}, auth=None, method='get'):
 		"""Dispatch an actual request to reddit.com and return the Response object"""
 
 		headers = hs
@@ -124,8 +125,8 @@ class RedditSession():
 			#print("have to sleep for %f" % (delay))
 			time.sleep(delay)
 
-		print("url=%s, args=%s, headers=%s, get=%s, auth=%s" % (url, args, headers, get, auth))
-		if get:
+		print("url=%s, args=%s, headers=%s, method=%s, auth=%s" % (url, args, headers, method, auth))
+		if method == 'get':
 			headers = dict(headers, **args)
 			y = requests.get(url, headers=headers)
 		else:
