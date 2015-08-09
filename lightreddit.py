@@ -2,9 +2,8 @@
 
 import time
 import os
-import urllib.request
+import requests
 import urllib.parse
-import http.cookiejar
 import json
 
 class RedditSession():
@@ -63,79 +62,81 @@ class RedditSession():
 	_morechildren_limit = 2		#fetch this many hidden children at a time	#TODO start this higher and cut it by half (and restart action) every time a t1__ error pops up
 		#TODO or maybe just leave things clumpted together the way they appear in the Mores
 
-	def __init__(self, u, p, agent):
+	def __init__(self, u, p, agent, client_id, client_secret):
 		self.next_req_time = time.time() + 2
-		self.uh = None
+		self.tokens = {}
 		self.user = u
 		self.passwd = p
 		self.user_agent = agent + " [python-lightreddit]"
+		self.client_id = client_id
+		self.client_secret = client_secret
 
 	def _login(self):
 		"""Log in to reddit. Use the stored cookie if possible."""
+		#TODO
+		'''
 		cookie_path = "/tmp/lightreddit_cookie_"+str(hash(self.user)%10000)	#CONFIGURE HERE
-		open(cookie_path, "a").close()	#create the file if it doesn't exist
-		os.chmod(cookie_path, 0o600)		#set appropriate permissions before we use it for anything
+		if os.path.isfile(cookie_path):
+			with open(cookie_path, "r") as cookie:
+				self.tokens = json.load(cookie)
+		else:
+			open(cookie_path, "a").close()
+			os.chmod(cookie_path, 0o600)
+			#self._get_refresh_token()
+		'''
 
-		cj = http.cookiejar.LWPCookieJar(cookie_path)
-		urllib.request.install_opener(urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj)))
+		self._get_access_token()	#TODO re-use if possible
 
-		try:
-			cj.load()
-		except http.cookiejar.LoadError:
-			pass		#we don't care if it fails. We're going to fetch a new cookie if we can't find reddit_session, anyway.
-		except IOError:
-			pass
-		if "reddit_session" not in [x.name for x in list(cj)]:	#we don't have a session cookie
-			if not self.user or not self.passwd:
-				raise RuntimeError("no username or password set")
-			y = self.req_raw("https://pay.reddit.com/api/login", {"passwd":self.passwd, "rem":True, "user":self.user})
-			#y = self.req_raw("http://api.reddit.com/api/login", {"passwd":self.passwd, "rem":True, "user":self.user})
-		#now we have a session cookie, either new or from cj
-		headers = []
+	def  _get_access_token(self):
+		data = {
+			'grant_type':	'password',
+			'username':		self.user,
+			'password':		self.passwd
+		}
+		y = self.req_raw('https://www.reddit.com/api/v1/access_token', args=data, auth=(self.client_id, self.client_secret))
+		response = json.loads(y.text)
+		self.tokens['bearer'] = response['access_token']
+		#TODO save in temp file
 
-		y = self.req_raw("http://api.reddit.com/api/me.json", headers=headers)
-		z = json.loads(y.read().decode("utf8"))
-		self.uh = z["data"]["modhash"]
-		#["has_mail", "has_mod_mail"]
-		cj.save(ignore_discard=True, ignore_expires=True)
-
-	def req(self, url_name, rname="", args=None, get_args=None):
+	def req(self, url_name, rname="", args={}, get_args=None):
 		"""Build a request, send it through the dispatcher, and return the response body"""
 		u = RedditSession.urls[url_name]
-		url = "http://api.reddit.com/%s" % (u["url"])
+		url = "https://oauth.reddit.com/%s" % (u["url"])
 		url = url.replace("$r", rname)
-		if get_args is not None:
+		if u['get_only']:
 			url += "?" + "&".join(["%s=%s" % (x[0], x[1]) for x in get_args.items()])
-		if args is not None:
-			args = dict(u["args"], **args)	#later ones override in case of collision with defaults
+		args = dict(u["args"], **args)	#later ones override in case of collision with defaults
+		headers = {}
 		if u["auth"]:
-			if self.uh is None:
+			if self.tokens == {}:
 				self._login()
-			if args is None:
-				args = {}
-			args["uh"] = self.uh
-		if u["get_only"]:
-			args = {}
-		return json.loads(self.req_raw(url, args).read().decode("utf8"))
+			headers["Authorization"] = "bearer %s" % self.tokens['bearer']
+		return json.loads(self.req_raw(url, args, headers, get=u['get_only']).text)
 
-	def req_raw(self, url, args=None, headers=None):
+	def req_raw(self, url, args={}, hs={}, auth=None, get=False):
 		"""Dispatch an actual request to reddit.com and return the Response object"""
-		if headers is None:	headers = []
-		if args is None:		args = {}
-		x = urllib.request.Request(url, data=(urllib.parse.urlencode(args).encode("ascii") if args else None))
 
-		x.add_header("User-Agent", self.user_agent)	#FIXME ensure the RHS is in quotes, because some characters are not valid naked on the RHS of HTTP headers
-		for h in headers:
-			x.add_header(h[0], h[1])
+		headers = hs
+		headers["User-Agent"] = self.user_agent	#FIXME ensure the RHS is in quotes, because some characters are not valid naked on the RHS of HTTP headers
+
 		delay = self.next_req_time - time.time()
 		if delay > 0:
 			#print("have to sleep for %f" % (delay))
 			time.sleep(delay)
-		#print("%f req %s \"%s\" %s %s" % (time.time(), x.get_method(), x.get_full_url(), x.header_items(), x.get_data()))
-		y = urllib.request.urlopen(x)
-		self.next_req_time = time.time() + 2
-		if y.status != 200:	#FIXME reddit.com still returns 200 when there was a higher-level error
-			print("%s: %s" % (y.status, y.reason))
+
+		print("url=%s, args=%s, headers=%s, get=%s, auth=%s" % (url, args, headers, get, auth))
+		if get:
+			headers = dict(headers, **args)
+			y = requests.get(url, headers=headers)
+		else:
+			if auth:	#TODO necessary?
+				y = requests.post(url, data=args, headers=headers, auth=auth)
+			else:
+				y = requests.post(url, data=args, headers=headers)
+
+		self.next_req_time = time.time() + 1
+		if y.status_code != 200:	#FIXME reddit.com still returns 200 when there was a higher-level error
+			y.raise_for_status()
 		return y
 
 	def get_comments(self, rname, start=None):
@@ -473,7 +474,7 @@ class RedditSession():
 
 	def wiki_get(self, rname, page):
 		"""Return wiki page."""
-		a = self.req_raw("http://api.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
+		a = self.req_raw("https://api.reddit.com/r/%s/wiki/%s.json" % (rname, page)).read().decode("utf8")
 		return RedditWikipage(self, json.loads(a))
 
 	def _thing_factory(self, x):
@@ -548,7 +549,19 @@ class RedditSubmission(RedditThing):
 	user_fields = ["author", "banned_by", "approved_by"]
 
 	def __str__(self):
-		return "<RedditSubmission(%s, %s, %s, %s)>" % (self.name, self.author, self.domain, self.title)
+		try:
+			author = self.author
+		except AttributeError:
+			author = '??'
+		try:
+			domain = self.domain
+		except AttributeError:
+			domain = '??'
+		try:
+			title = self.title
+		except AttributeError:
+			title = '??'
+		return "<RedditSubmission(%s, %s, %s, %s)>" % (self.name, author, domain, title)
 
 class RedditComment(RedditThing):
 	"""A single comment"""
