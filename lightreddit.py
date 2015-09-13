@@ -74,18 +74,6 @@ class RedditSession():
 
 	def _login(self):
 		"""Log in to reddit. Use the stored cookie if possible."""
-		#TODO
-		'''
-		cookie_path = "/tmp/lightreddit_cookie_"+str(hash(self.user)%10000)	#CONFIGURE HERE
-		if os.path.isfile(cookie_path):
-			with open(cookie_path, "r") as cookie:
-				self.tokens = json.load(cookie)
-		else:
-			open(cookie_path, "a").close()
-			os.chmod(cookie_path, 0o600)
-			#self._get_refresh_token()
-		'''
-
 		self._get_access_token()	#TODO re-use if possible
 
 	def  _get_access_token(self):
