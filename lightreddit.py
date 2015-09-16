@@ -82,7 +82,7 @@ class RedditSession():
 			'username':		self.user,
 			'password':		self.passwd
 		}
-		y = self.req_raw('https://www.reddit.com/api/v1/access_token', args=data, auth=(self.client_id, self.client_secret))
+		y = self.req_raw('https://www.reddit.com/api/v1/access_token', args=data, auth=(self.client_id, self.client_secret), method='post')
 		response = json.loads(y.text)
 		self.tokens['bearer'] = response['access_token']
 		#TODO save in temp file
