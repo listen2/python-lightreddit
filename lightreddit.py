@@ -35,7 +35,7 @@ class RedditSession():
 		"flairlist":	{"url":"r/$r/api/flairlist.json",	"auth":True,	"args":{},							"method":"get"},
 
 		"overview":		{"url":"user/$r/overview.json",		"auth":False,	"args":{},							"method":"get"},
-		"u_comments":	{"url":"user/$r/comments.json",		"auth":False,	"args":{},							"method":"get"},
+		"u_comments":	{"url":"user/$r/comments.json",		"auth":False,	"args":{},							"method":"get",	"host":"www"},
 		"u_submitted":	{"url":"user/$r/submitted.json",		"auth":False,	"args":{},							"method":"get"},
 		"inbox":			{"url":"message/inbox.json",			"auth":True,	"args":{},							"method":"get"},
 		"sent":			{"url":"message/sent.json",			"auth":True,	"args":{},							"method":"get"},
@@ -113,7 +113,7 @@ class RedditSession():
 			#print("have to sleep for %f" % (delay))
 			time.sleep(delay)
 
-		print("url=%s, args=%s, headers=%s, method=%s, auth=%s" % (url, args, headers, method, auth))
+		#print("url=%s, args=%s, headers=%s, method=%s, auth=%s" % (url, args, headers, method, auth))
 		if method == 'get':
 			headers = dict(headers, **args)
 			y = requests.get(url, headers=headers)
